@@ -284,6 +284,17 @@ La consistencia de la información entre Redis y MongoDB se asegura mediante las
    - **MongoDB:** Se actualiza el promedio de puntuación del curso y los arrays relacionados.
 
 
+## Nuevos Endpoints:
+
+- POST Crear un Usuario:  http://localhost:3000/usuarios/crear 
+- POST Iniciar Sesión: http://localhost:3000/usuarios/login
+- POST Registrar un Curso para el Usuario: http://localhost:3000/usuarios/cursos/registrar
+- PATCH Actualizar Estado y Avance del Curso:  http://localhost:3000/usuarios/cursos/actualizar
+- GET Obtener los Cursos Registrados por un Usuario:  http://localhost:3000/usuarios/cursos
+- POST Agregar Comentario y Puntuación a un Curso: http://localhost:3000/usuarios/cursos/idCursoMongoDB/comentarios
+- GET Obtener los Cursos Revisados por el Usuario: http://localhost:3000/usuarios/cursos/revisados
+- DELETE Eliminar Curso:  http://localhost:3000/usuarios/cursos/eliminar
+
 ## Codigos de ejemplo:
 
 ### Registrar usuario
