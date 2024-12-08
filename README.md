@@ -208,3 +208,209 @@ Descripción: Agrega una clase nueva a una unidad específica dentro de un curso
 }
 ```
 
+
+# PRUEBA 2
+
+### 1. Base de Datos de Clave-Valor Utilizada
+La aplicación utiliza **Redis** como base de datos de clave-valor para manejar información relacionada con usuarios y sus interacciones con los cursos. Redis se seleccionó por su alta velocidad y facilidad para manejar datos estructurados de manera sencilla en formatos no relacionales, **Se tiene que ejecutar Redis Sever antes de ejecutar la aplicación sino tirara error de conexion**
+
+- **Tecnología:** Redis ( Se tiene que estar instalado previamente para poder utilizanrse https://redis.io/downloads/ )
+- **Puerto:** `6379` (puerto predeterminado de Redis)
+- **Tipo de almacenamiento:** Hashes para representar usuarios y sus datos asociados.
+
+---
+
+### 2. Estructura de la Información a Almacenar
+
+#### Estructura del Usuario en Redis
+Cada usuario se almacena como una clave en Redis con un hash que contiene la siguiente información:
+
+
+```
+"user:<username>": {
+  "password": "string",
+  "cursos": {
+    "<cursoId>": {
+      "estado": "string",       // Estado del curso (INICIADO, EN CURSO, COMPLETADO)
+      "avance": "number",      // Porcentaje de avance del curso
+      "fechaIngreso": "string",// Fecha en formato YYYY-MM-DD
+      "puntuacion": "number",  // Valoración del curso
+      "comentario": "string"   // Comentario del usuario sobre el curso
+    }
+  }
+}
+```
+
+Ejemplo:
+
+```
+"user:juanita": {
+  "password": "123456",
+  "cursos": {
+    "64f7c9d5d2feca4cfbd78901": {
+      "estado": "EN CURSO",
+      "avance": 50,
+      "fechaIngreso": "2024-12-07",
+      "puntuacion": 5,
+      "comentario": "¡Excelente curso!"
+    }
+  }
+}
+```
+### 3. Manejo de Relaciones y Consistencia de la Información
+
+#### Relación entre Usuarios y Cursos
+
+- **Redis:**  
+  Los usuarios almacenan sus interacciones con los cursos en la clave `user:<username>` bajo el campo `cursos`. Esto incluye:
+  - Estado del curso (INICIADO, EN CURSO, COMPLETADO).
+  - Porcentaje de avance.
+  - Puntuación asignada.
+  - Comentario dejado por el usuario.
+
+- **MongoDB:**  
+  Los cursos almacenan las puntuaciones de todos los usuarios en el array `puntuaciones`. El promedio de la valoración del curso se actualiza dinámicamente cada vez que se recibe una nueva puntuación.
+
+#### Consistencia
+
+La consistencia de la información entre Redis y MongoDB se asegura mediante las siguientes estrategias:
+
+1. **Transacciones en Redis :**  
+   Usar los comandos `MULTI` y `EXEC` para manejar operaciones atómicas si se requieren múltiples cambios en Redis.
+
+2. **Lógica de la Aplicación:**  
+   Cada vez que un usuario agrega una puntuación o un comentario:
+   - **Redis:** Se actualizan los datos del usuario (estado, avance, puntuación, comentario).
+   - **MongoDB:** Se actualiza el promedio de puntuación del curso y los arrays relacionados.
+
+
+## Codigos de ejemplo:
+
+### Registrar usuario
+
+```
+{
+  "username": "juanita",
+  "password": "123456"
+}
+
+```
+
+### Iniciar sesion
+
+```
+{
+  "username": "juanita",
+  "password": "123456"
+}
+
+```
+
+### Registrar curso a usuario
+
+```
+{
+  "username": "juanita",
+  "cursoId": "64f7c9d5d2feca4cfbd78901" //Id curso mongodb
+}
+
+```
+
+### Actualizar estado y avance de curso
+
+```
+{
+  "username": "juanita",
+  "cursoId": "64f7c9d5d2feca4cfbd78901", //Id curso mongodb
+  "estado": "EN CURSO",
+  "avance": 50
+}
+
+```
+
+### Obtemer curso registrados por usuario
+
+```
+{
+  "username": "juanita"
+}
+
+```
+
+### Agregar comentario y puntuacion a un curso siendo usuario
+
+```
+{
+  "username": "juanita",
+  "puntuacion": 5,
+  "comentario": "¡Excelente curso, aprendí mucho!"
+}
+
+```
+
+### Obtener cursos revisados por usuario
+
+```
+{
+  "username": "juanita"
+}
+
+```
+
+### Eliminar Curso a usuario
+
+```
+{
+  "username": "juanita",
+  "cursoId": "cursoId123" //id curso Mongodb
+}
+```
+
+## Comandos Redis
+
+### Redis Server
+```
+redis-server
+```
+### Redis Consola 
+```
+redis-cli
+```
+### Ver detalles Curso
+
+```
+hgetall user:juanita
+```
+
+### Ver cursos registrados por usuario
+
+```
+hkeys user:juanita
+```
+
+### Ver informacion curso especifico
+
+```
+hget user:juanita cursos.cursoId123
+```
+
+### Eliminar un Curso de un Usuario
+
+```
+hdel user:juanita cursos.cursoId123
+```
+
+### Ver Todas las Claves que Contienen Usuarios
+
+```
+keys user:*
+```
+
+### Eliminar usuario
+
+```
+del user:juanita
+```
+
+
+
